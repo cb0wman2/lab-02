@@ -9,6 +9,108 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 ```
 
+```{r message=FALSE, warning=FALSE}
+library(tidyverse)
+library(readxl)
+```
+
+```{r message=FALSE, warning=FALSE}
+#load-data
+data1 <- read.csv("data/mismanaged-plastic-waste-per-capita.csv")
+data2 <- read.csv2("data/per-capita-ocean-plastic-waste.txt")
+data3 <- read_tsv("data/UN_country_population.tsv")
+data4 <- read_excel("data/UN_country_region.xlsx")
+```
+
+```{r}
+#join-data
+plastic_data_all <- data1
+plastic_data_all <- data2 %>%
+  select(-name) %>%
+  left_join(plastic_data_all, by = "code")
+plastic_data_all <- data3 %>%
+  select(-name) %>%
+  right_join(plastic_data_all, by = "code")
+plastic_data_all <- data4 %>%
+  select(-name) %>%
+  right_join(plastic_data_all, by = "code")
+
+view(plastic_data_all)
+```
+
+```{r}
+#print-data
+plastic_data_all %>% head(n = 10)
+```
+
+### Exercise 1.
+Create a frequency table of coastal countries/territories by region.
+
+```{r}
+plastic_data_all %>% 
+  count(., region, sort = TRUE) %>%
+  arrange(region)
+```
+
+Which region has the highest number of coastal countries/territories?
+
+Africa
+
+### Exercise 2
+The mismanaged plastic waste is measured in kg per capita. Add a new variable to plastic_data_all called total_mismanage_plastic by multiplying mismanaged_plastic by population.
+
+```{r}
+plastic_data_all %>%
+  mutate(., total_mismanage_plastic = mismanaged_plastic * population) %>%
+  group_by(region) %>%
+  summarise(
+    Mean = mean(total_mismanage_plastic))
+```
+
+Which region has the highest total and which has the lowest total?
+
+```{r}
+
+```
+
+### Exercise 3
+Add a new variable called pct_mismanaged_plastic_ocean to plastic_data_all that represents the amount of ocean emitted mismanaged plastic waste as a percentage of all mismanaged plastic waste.
+
+Calculate the median pct_mismanaged_plastic_ocean for each region.
+
+```{r}
+plastic_data_all %>%
+  mutate(., pct_mismanaged_plastic_ocean = mismanaged_plastic_ocean/mismanaged_plastic * 100) %>%
+  group_by(region) %>%
+  drop_na(pct_mismanaged_plastic_ocean) %>%
+  summarise(
+    Median = median(pct_mismanaged_plastic_ocean)
+  )
+```
+
+Your answer for Africa should be NaN. What does this mean and what is causing this issue? Hint: filter your data using code == "SOM".
+
+Add the command drop_na() after computing the variable pct_mismanaged_plastic_ocean and re-evaluate the median estimates. Which region has the lowest median?
+
+Africa
+
+### Exercise 4
+Use the rename() command to replace the existing variable names with something that is more concise.
+
+```{r}
+plastic_data_all <- plastic_data_all %>%
+  rename(., pop = population, plastic_ocean = mismanaged_plastic_ocean, plastic = mismanaged_plastic)
+```
+
+In addition, region name of "Latin America and The Caribbean" is much longer than the other regions, so we can consider replacing this text with a suitable acronym.
+
+Mutate the region variable to replace the text "Latin America and The Caribbean" with "LAC". Hint: have a look at how to use the str_replace_all() command.
+Finally, create a frequency table or calculate an interesting statistic per region that uses the renamed variables.
+
+```{r}
+
+```
+
 ## R Markdown
 
 This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
